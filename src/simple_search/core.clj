@@ -109,17 +109,6 @@
 ; (def ra (random-answer knapPI_11_20_1000_1))
 ; (mutate-answer ra)
 
-(defn hill-climber
-  [mutator scorer instance max-tries]
-  (loop [current-best (add-score scorer (random-answer instance))
-         num-tries 1]
-    (let [new-answer (add-score scorer (mutator current-best))]
-      (if (>= num-tries max-tries)
-        current-best
-        (if (> (:score new-answer)
-               (:score current-best))
-          (recur new-answer (inc num-tries))
-          (recur current-best (inc num-tries)))))))
 
 ; (time (random-search score knapPI_16_200_1000_1 100000
 ; ))
@@ -129,3 +118,59 @@
 
 ; (time (hill-climber mutate-answer penalized-score knapPI_16_200_1000_1 100000
 ; ))
+
+"___________________________________________###############_______________________________________"
+"########################################### OUR FUNCTIONS #######################################"
+"*******************************************###############***************************************"
+
+
+;; best: takes a parent and a child and returns the best of the two
+(defn get-best
+  [parent child]
+  (let [parent-score (:score parent)
+        child-score (:score child)]
+  (if (< parent-score child-score) child
+       parent)
+))
+
+
+;get-scores: takes answer and returns the capacity, total-weight, total-value, and score fields
+(defn get-scores
+  [answer]
+  (let [capacity (:capacity (:instance answer))]
+  (merge {:capacity capacity} (select-keys answer [:total-weight :total-value :score]))))
+
+(defn random-combine
+  [num1 num2]
+  (if (zero?(rand-int 2)) num1 num2))
+
+;crossover
+(defn crossover [p1 p2]
+  (let [index 0
+        newAnswers (take (count p1) (iterate (random-combine (nth p1 index) (nth p2 index))) (iterate inc index))]
+        newAnswers))
+
+;uniform crossover
+(defn uniform-crossover
+  [scorer instance max-tries]
+  (let [p1 (random-answer instance)
+        p2 (random-answer instance)]
+        (last (take max-tries (iterate (crossover p1 p2))))))
+
+(def test [10 20 30])
+(def thing [5 6 7])
+
+
+
+;############### 20 items ###########################
+
+;; ;; Random-Search
+(get-scores (random-search penalized-score knapPI_11_20_1000_1 100000))
+(get-scores (random-search penalized-score knapPI_13_20_1000_1 100000))
+(get-scores (random-search penalized-score knapPI_16_20_1000_1 100000))
+
+;; ;; Uniform Crossover
+(get-scores (uniform-crossover penalized-score knapPI_11_20_1000_1 100000))
+(get-scores (uniform-crossover penalized-score knapPI_13_20_1000_1 100000))
+(get-scores (uniform-crossover penalized-score knapPI_16_20_1000_1 100000))
+
