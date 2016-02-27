@@ -145,20 +145,37 @@
   (if (zero?(rand-int 2)) num1 num2))
 
 ;crossover
+;(defn crossover [p1 p2]
+;  (let [index 0
+;        newAnswers (take (count p1) (iterate (random-combine (nth p1 index) (nth p2 index))) (iterate inc index))]
+;        newAnswers))
+
 (defn crossover [p1 p2]
-  (let [index 0
-        newAnswers (take (count p1) (iterate (random-combine (nth p1 index) (nth p2 index))) (iterate inc index))]
-        newAnswers))
+    (map #(rand-nth %)
+         (partition 2 (interleave p1 p2))))
 
 ;uniform crossover
 (defn uniform-crossover
   [scorer instance max-tries]
   (let [p1 (random-answer instance)
         p2 (random-answer instance)]
-        (last (take max-tries (iterate (crossover p1 p2))))))
+        (last (take max-tries (iterate (partial crossover p1) p2)))))
 
+;======random test stuff=====
 (def test [10 20 30])
 (def thing [5 6 7])
+
+(def par1 (random-answer knapPI_11_20_1000_8))
+(def par2 (random-answer knapPI_11_20_1000_8))
+
+
+(last (take 3 (iterate (partial crossover test) thing)))
+(last (take 3 (iterate (partial crossover par1) par2)))
+
+(apply max-key :score
+         (map (partial add-score penalized-score)
+              (repeatedly 4 #(random-answer knapPI_13_20_1000_5))))
+;=====end random stuff=======
 
 
 
@@ -170,7 +187,7 @@
 (get-scores (random-search penalized-score knapPI_16_20_1000_1 100000))
 
 ;; ;; Uniform Crossover
-(get-scores (uniform-crossover penalized-score knapPI_11_20_1000_1 100000))
-(get-scores (uniform-crossover penalized-score knapPI_13_20_1000_1 100000))
-(get-scores (uniform-crossover penalized-score knapPI_16_20_1000_1 100000))
+(get-scores (uniform-crossover penalized-score knapPI_11_20_1000_1 10))
+;(get-scores (uniform-crossover penalized-score knapPI_13_20_1000_1 100000))
+;(get-scores (uniform-crossover penalized-score knapPI_16_20_1000_1 100000))
 
