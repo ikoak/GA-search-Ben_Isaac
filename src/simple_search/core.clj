@@ -140,59 +140,56 @@
   (let [capacity (:capacity (:instance answer))]
   (merge {:capacity capacity} (select-keys answer [:total-weight :total-value :score]))))
 
-;(defn random-combine
- ; [num1 num2]
-  ;(if (zero?(rand-int 2)) num1 num2))
-
-;crossover
-;(defn crossover [p1 p2]
-;  (let [index 0
-;        newAnswers (take (count p1) (iterate (random-combine (nth p1 index) (nth p2 index))) (iterate inc index))]
-;        newAnswers))
+(defn flip-choices [binary times]
+    (loop [bin binary x times]
+      (if (zero? x) (into () bin)
+        (recur (assoc (vec bin) (rand-int (count bin)) (rand-int 2)) (dec x))))
+)
 
 (defn make-parents [instance num-parents scorer]
   "takes an instance and the number of parents to be generated"
   (map #(add-score scorer %) (repeatedly num-parents #(random-answer instance))))
 
-(defn crossover [p1 p2]
+(defn normal-crossover [p1 p2]
     "takes two parents and performs uniform crossover on the list of choices"
     (flatten (map rand-nth
          (partition 2 (interleave (:choices p1) (:choices p2))))))
 
-;uniform crossover
+
+;;need to finish implementing two-point-crossover
+(defn two-point-crossover [p1 p2]
+    "takes two parents and performs two point crossover on the list of choices"
+    (let [size (count p1)
+          first-spot (rand (/ size 2))
+          second-spot (+ size (rand (/ (count p2))))])
+    (flatten (map rand-nth
+         (partition 2 (interleave (:choices p1) (:choices p2))))))
+
 (defn uniform-crossover
-  [scorer instance max-tries num-parents]
+  [scorer instance max-tries num-parents crossover-type]
   (let [parent-list (make-parents instance num-parents scorer)]
-        (take (/ max-tries num-parents)  (iterate
-            get-best (partial crossover (rand-nth parent-list)) (rand-nth parent-list) (partial crossover (rand-nth parent-list)) (rand-nth parent-list))
-              )))
+      (apply max-key :score (repeatedly (- max-tries num-parents)
+        #(get-best
+          (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list))))
+          (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))))))
 
-(uniform-crossover penalized-score knapPI_11_20_1000_2 10 10)
+(get-scores (uniform-crossover penalized-score knapPI_11_20_1000_2 10000 100 two-point-crossover))
+
+(defn uniform-crossover-tweak
+  [scorer instance max-tries num-parents tweak crossover-type]
+  (let [parent-list (make-parents instance num-parents scorer)]
+      (apply max-key :score (repeatedly (- max-tries num-parents)
+        #(get-best
+          (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))
+          (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list))))))))))
+
+(get-scores (uniform-crossover-tweak penalized-score knapPI_11_20_1000_2 10000 100 mutate-choices crossover))
+
+
+
+
+
 ;======random test stuff=====
-(def test [10 20 30])
-(def thing [5 6 7])
-
-(def par1 (random-answer knapPI_11_20_1000_8))
-(def par2 (random-answer knapPI_11_20_1000_8))
-(def p1 (add-score penalized-score par1))
-(def p2 (add-score penalized-score par2))
-
-(get-best p1 p2)
-
-(last (take 3 (iterate (partial crossover test) thing)))
-(last (take 300 (iterate (partial crossover par1) par2)))
-
-(apply max-key :score
-         (map (partial add-score penalized-score)
-              (repeatedly 3 #(random-answer knapPI_13_20_1000_5))))
-(get-best (nth (make-parents knapPI_16_20_1000_7 2) 1)
-               (nth (make-parents knapPI_16_20_1000_7 2) 1))
-
-(def temp (nth (make-parents knapPI_16_20_1000_7 2 penalized-score) 1))
-(def tp (nth (make-parents knapPI_16_20_1000_7 4 penalized-score) 2))
-
-(get-best (crossover p1 p2) (crossover p1 p2))
-
 
 ;=====end random stuff=======
 
