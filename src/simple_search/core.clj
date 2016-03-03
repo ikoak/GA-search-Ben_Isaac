@@ -166,24 +166,24 @@
          (partition 2 (interleave (:choices p1) (:choices p2))))))
 
 (defn uniform-crossover
-  [scorer instance max-tries num-parents crossover-type]
+  [scorer crossover-type num-parents instance max-tries]
   (let [parent-list (make-parents instance num-parents scorer)]
       (apply max-key :score (repeatedly (- max-tries num-parents)
         #(get-best
           (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list))))
           (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))))))
 
-(get-scores (uniform-crossover penalized-score knapPI_11_20_1000_2 10000 100 two-point-crossover))
+(get-scores (uniform-crossover penalized-score two-point-crossover 100 knapPI_11_20_1000_2 100000))
 
 (defn uniform-crossover-tweak
-  [scorer instance max-tries num-parents tweak crossover-type]
+  [scorer crossover-type tweak num-parents instance max-tries]
   (let [parent-list (make-parents instance num-parents scorer)]
       (apply max-key :score (repeatedly (- max-tries num-parents)
         #(get-best
           (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))
           (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list))))))))))
 
-(get-scores (uniform-crossover-tweak penalized-score knapPI_11_20_1000_2 10000 100 mutate-choices crossover))
+(get-scores (uniform-crossover-tweak penalized-score normal-crossover mutate-choices 100 knapPI_11_20_1000_2 10000))
 
 
 
