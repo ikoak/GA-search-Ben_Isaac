@@ -161,9 +161,13 @@
     "takes two parents and performs two point crossover on the list of choices"
     (let [size (count p1)
           first-spot (rand (/ size 2))
-          second-spot (+ size (rand (/ (count p2))))])
-    (flatten (map rand-nth
-         (partition 2 (interleave (:choices p1) (:choices p2))))))
+          second-spot (rand (+ (/ size 2) first-spot))
+          first-half (- second-spot first-spot)
+          second-half (- size second-spot)]
+    (flatten (vec (concat
+          (take first-spot p2)
+          (take first-half (drop first-spot p1))
+          (take second-half (drop second-spot p2)))))))
 
 (defn uniform-crossover
   [scorer crossover-type num-parents instance max-tries]
@@ -174,6 +178,14 @@
           (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))))))
 
 (get-scores (uniform-crossover penalized-score two-point-crossover 100 knapPI_11_20_1000_2 100000))
+
+(uniform-crossover penalized-score two-point-crossover 100 knapPI_11_20_1000_2 100000)
+
+(def parent-list (make-parents knapPI_11_20_1000_2 20 penalized-score))
+parent-list
+(two-point-crossover (rand-nth parent-list) (rand-nth parent-list))
+
+
 
 (defn uniform-crossover-tweak
   [scorer crossover-type tweak num-parents instance max-tries]
