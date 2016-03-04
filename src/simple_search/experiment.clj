@@ -60,16 +60,16 @@
    (ns simple-search.experiment)
    (print-experimental-results
    (run-experiment [(with-meta
-        (partial core/uniform-crossover core/penalized-score core/normal-crossover 500)
+        (partial core/uniform-crossover core/penalized-score core/normal-crossover 5)
         {:label "uniform_crossover"})
       (with-meta
-        (partial core/uniform-crossover-tweak core/penalized-score core/normal-crossover core/mutate-choices 500)
+        (partial core/uniform-crossover-tweak core/penalized-score core/normal-crossover core/mutate-choices 5)
         {:label "uniform_crossover_tweak"})
       (with-meta
-        (partial core/uniform-crossover core/penalized-score core/two-point-crossover 500)
+        (partial core/uniform-crossover core/penalized-score core/two-point-crossover 5)
         {:label "two_point_uniform_crossover"})
       (with-meta
-        (partial core/uniform-crossover-tweak core/penalized-score core/two-point-crossover core/mutate-choices 500)
+        (partial core/uniform-crossover-tweak core/penalized-score core/two-point-crossover core/mutate-choices 5)
         {:label "two_point_uniform_crossover_tweak"})
       (with-meta
         (partial core/random-search core/penalized-score)
@@ -81,7 +81,7 @@
       (Integer/parseInt max-answers)))
     (shutdown-agents))
 
- (-main "1" "10000")
+ ;(-main "1" "100")
 
 
 

@@ -149,9 +149,19 @@
         (recur (assoc (vec bin) (rand-int (count bin)) (rand-int 2)) (dec x))))
 )
 
-(defn make-parents [instance num-parents scorer]
+;###############################################################
+
+(defn make-generation [instance num-parents scorer]
   "takes an instance and the number of parents to be generated"
   (map #(add-score scorer %) (repeatedly num-parents #(random-answer instance))))
+
+
+(defn improve-population
+  [scorer past-generation new-generation]
+  (drop (count past-generation)
+    (sort-by :score
+      (map (partial add-score scorer) (concat past-generation new-generation)))))
+
 
 (defn normal-crossover [p1 p2]
     "takes two parents and performs uniform crossover on the list of choices"
@@ -170,9 +180,11 @@
           (subvec (vec p2) first-spot second-spot)
           (subvec (vec p1) second-spot size)))))
 
+
 (defn uniform-crossover
   [scorer crossover-type num-parents instance max-tries]
-  (let [parent-list (make-parents instance num-parents scorer)
+  (let [parent-list (make-generation instance num-parents scorer)
+        new-parent-list (make-generation instance num-parents scorer)
         parent1 (rand-nth parent-list)
         parent2 (rand-nth parent-list)]
       (apply max-key :score (repeatedly (- max-tries num-parents)
@@ -182,11 +194,33 @@
 
 (defn uniform-crossover-tweak
   [scorer crossover-type tweak num-parents instance max-tries]
-  (let [parent-list (make-parents instance num-parents scorer)]
+  (let [parent-list (make-generation instance num-parents scorer)]
       (apply max-key :score (repeatedly (- max-tries num-parents)
         #(get-best
-          (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))
-          (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list))))))))))
+           (add-score scorer (make-answer instance (tweak (crossover-type
+             (apply max-key :score (improve-population scorer (make-generation instance num-parents scorer) parent-list))
+             (apply max-key :score (improve-population scorer (make-generation instance num-parents scorer) parent-list))))))
+           (add-score scorer (make-answer instance (tweak (crossover-type
+             (apply max-key :score (improve-population scorer (make-generation instance num-parents scorer) parent-list))
+             (apply max-key :score (improve-population scorer (make-generation instance num-parents scorer) parent-list)))))))))))
+
+;(def parent-list (make-generation knapPI_16_200_1000_4 100 penalized-score))
+;(apply max-key :score (improve-population penalized-score (make-generation knapPI_16_200_1000_4 100 penalized-score) parent-list))
+
+(get-scores (uniform-crossover penalized-score two-point-crossover 500 knapPI_16_200_1000_8 100000))
+
+(defn uniform-crossover
+  [scorer crossover-type num-parents instance max-tries]
+  (let [parent-list (make-generation instance num-parents scorer)]
+      (apply max-key :score (repeatedly (- max-tries num-parents)
+        #(get-best
+           (add-score scorer (make-answer instance (crossover-type
+             (rand-nth (improve-population scorer (make-generation instance num-parents scorer) parent-list))
+             (rand-nth (improve-population scorer (make-generation instance num-parents scorer) parent-list)))))
+           (add-score scorer (make-answer instance (crossover-type
+             (rand-nth (improve-population scorer (make-generation instance num-parents scorer) parent-list))
+             (rand-nth (improve-population scorer (make-generation instance num-parents scorer) parent-list))))))))))
+
 
 ;############### 20 items ###########################
 
@@ -196,6 +230,6 @@
 ;(get-scores (random-search penalized-score knapPI_16_20_1000_1 100000))
 
 ;; ;; Uniform Crossover
-(uniform-crossover penalized-score two-point-crossover 10000 knapPI_16_1000_1000_4 1000000)
+(uniform-crossover-tweak penalized-score two-point-crossover mutate-choices 50 knapPI_16_200_1000_4 1000)
 ;(get-scores (uniform-crossover penalized-score knapPI_13_20_1000_1 100000))
 ;(get-scores (uniform-crossover penalized-score knapPI_16_20_1000_1 100000))
