@@ -14,7 +14,7 @@
   (for [searcher searchers
         p problems
         n (range num-replications)]
-    (let [answer (future (searcher p max-evals))]
+    (let [answer (searcher p max-evals)]
       {:searcher searcher
        :problem p
        :max-evals max-evals
@@ -59,17 +59,17 @@
   ; resolve propertly.
    (ns simple-search.experiment)
    (print-experimental-results
-   (run-experiment [;(with-meta
-        ;(partial core/uniform-crossover core/penalized-score core/normal-crossover 50)
-        ;{:label "uniform_crossover"})
-      ;(with-meta
-        ;(partial core/uniform-crossover-tweak core/penalized-score core/normal-crossover core/mutate-choices 50)
-        ;{:label "uniform_crossover_tweak"})
-      ;(with-meta
-        ;(partial core/uniform-crossover core/penalized-score core/two-point-crossover 50)
-        ;{:label "two_point_uniform_crossover"})
+   (run-experiment [(with-meta
+        (partial core/uniform-crossover core/penalized-score core/normal-crossover 500)
+        {:label "uniform_crossover"})
       (with-meta
-        (partial core/uniform-crossover-tweak core/penalized-score core/two-point-crossover core/mutate-choices 50)
+        (partial core/uniform-crossover-tweak core/penalized-score core/normal-crossover core/mutate-choices 500)
+        {:label "uniform_crossover_tweak"})
+      (with-meta
+        (partial core/uniform-crossover core/penalized-score core/two-point-crossover 500)
+        {:label "two_point_uniform_crossover"})
+      (with-meta
+        (partial core/uniform-crossover-tweak core/penalized-score core/two-point-crossover core/mutate-choices 500)
         {:label "two_point_uniform_crossover_tweak"})
       (with-meta
         (partial core/random-search core/penalized-score)
@@ -81,5 +81,7 @@
       (Integer/parseInt max-answers)))
     (shutdown-agents))
 
- (-main "1" "100")
+ (-main "1" "10000")
+
+
 

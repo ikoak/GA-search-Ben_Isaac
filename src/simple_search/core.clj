@@ -158,8 +158,6 @@
     (flatten (map rand-nth
          (partition 2 (interleave (:choices p1) (:choices p2))))))
 
-
-;;need to finish implementing two-point-crossover
 (defn two-point-crossover [p1 p2]
     "takes two parents and performs two point crossover on the list of choices"
     (let [p1 (:choices p1)
@@ -174,11 +172,13 @@
 
 (defn uniform-crossover
   [scorer crossover-type num-parents instance max-tries]
-  (let [parent-list (make-parents instance num-parents scorer)]
+  (let [parent-list (make-parents instance num-parents scorer)
+        parent1 (rand-nth parent-list)
+        parent2 (rand-nth parent-list)]
       (apply max-key :score (repeatedly (- max-tries num-parents)
         #(get-best
-          (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list))))
-          (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))))))
+          (add-score scorer (make-answer instance (crossover-type parent1 parent2)))
+          (add-score scorer (make-answer instance (crossover-type parent2 parent1))))))))
 
 (defn uniform-crossover-tweak
   [scorer crossover-type tweak num-parents instance max-tries]
@@ -188,8 +188,6 @@
           (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))
           (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list))))))))))
 
-
-
 ;############### 20 items ###########################
 
 ;; ;; Random-Search
@@ -198,7 +196,6 @@
 ;(get-scores (random-search penalized-score knapPI_16_20_1000_1 100000))
 
 ;; ;; Uniform Crossover
-(uniform-crossover penalized-score two-point-crossover 1000 knapPI_11_20_1000_1 100000)
+(uniform-crossover penalized-score two-point-crossover 10000 knapPI_16_1000_1000_4 1000000)
 ;(get-scores (uniform-crossover penalized-score knapPI_13_20_1000_1 100000))
 ;(get-scores (uniform-crossover penalized-score knapPI_16_20_1000_1 100000))
-
