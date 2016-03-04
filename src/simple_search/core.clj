@@ -2,7 +2,10 @@
   (:use simple-search.knapsack-examples.knapPI_11_20_1000
         simple-search.knapsack-examples.knapPI_13_20_1000
         simple-search.knapsack-examples.knapPI_16_20_1000
-        simple-search.knapsack-examples.knapPI_16_200_1000))
+        simple-search.knapsack-examples.knapPI_11_200_1000
+        simple-search.knapsack-examples.knapPI_13_200_1000
+        simple-search.knapsack-examples.knapPI_16_200_1000
+        simple-search.knapsack-examples.knapPI_16_1000_1000))
 
 ;;; An answer will be a map with (at least) four entries:
 ;;;   * :instance
@@ -159,15 +162,15 @@
 ;;need to finish implementing two-point-crossover
 (defn two-point-crossover [p1 p2]
     "takes two parents and performs two point crossover on the list of choices"
-    (let [size (count p1)
-          first-spot (rand (/ size 2))
-          second-spot (rand (+ (/ size 2) first-spot))
-          first-half (- second-spot first-spot)
-          second-half (- size second-spot)]
-    (flatten (vec (concat
-          (take first-spot p2)
-          (take first-half (drop first-spot p1))
-          (take second-half (drop second-spot p2)))))))
+    (let [p1 (:choices p1)
+          p2 (:choices p2)
+          size (count p1)
+          first-spot (rand-int (/ size 2))
+          second-spot (+ (rand-int (/ size 2)) first-spot)]
+    (vec (concat
+          (subvec (vec p1) 0 first-spot)
+          (subvec (vec p2) first-spot second-spot)
+          (subvec (vec p1) second-spot size)))))
 
 (defn uniform-crossover
   [scorer crossover-type num-parents instance max-tries]
@@ -177,7 +180,6 @@
           (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list))))
           (add-score scorer (make-answer instance (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))))))
 
-
 (defn uniform-crossover-tweak
   [scorer crossover-type tweak num-parents instance max-tries]
   (let [parent-list (make-parents instance num-parents scorer)]
@@ -186,21 +188,17 @@
           (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list)))))
           (add-score scorer (make-answer instance (tweak (crossover-type (rand-nth parent-list) (rand-nth parent-list))))))))))
 
-;======random test stuff=====
-
-;=====end random stuff=======
-
 
 
 ;############### 20 items ###########################
 
 ;; ;; Random-Search
-(get-scores (random-search penalized-score knapPI_11_20_1000_1 100000))
-(get-scores (random-search penalized-score knapPI_13_20_1000_1 100000))
-(get-scores (random-search penalized-score knapPI_16_20_1000_1 100000))
+;(get-scores (random-search penalized-score knapPI_11_20_1000_4 100000))
+;(get-scores (random-search penalized-score knapPI_13_20_1000_1 100000))
+;(get-scores (random-search penalized-score knapPI_16_20_1000_1 100000))
 
 ;; ;; Uniform Crossover
-;(get-scores (uniform-crossover penalized-score knapPI_11_20_1000_1 10))
+(uniform-crossover penalized-score two-point-crossover 1000 knapPI_11_20_1000_1 100000)
 ;(get-scores (uniform-crossover penalized-score knapPI_13_20_1000_1 100000))
 ;(get-scores (uniform-crossover penalized-score knapPI_16_20_1000_1 100000))
 

@@ -5,7 +5,8 @@
         simple-search.knapsack-examples.knapPI_16_20_1000
         simple-search.knapsack-examples.knapPI_11_200_1000
         simple-search.knapsack-examples.knapPI_13_200_1000
-        simple-search.knapsack-examples.knapPI_16_200_1000))
+        simple-search.knapsack-examples.knapPI_16_200_1000
+        simple-search.knapsack-examples.knapPI_16_1000_1000))
 
 (defn run-experiment
   [searchers problems num-replications max-evals]
@@ -27,7 +28,7 @@
              (:label (:problem result))
              (:max-evals result)
              (:run-number result)
-             (:score @(:answer result)))))
+             (:score (:answer result)))))
 
 ;; This really shouldn't be necessary, as I should have included the labels
 ;; in the maps when generated the problem files. Unfortunately I only just
@@ -41,7 +42,7 @@
   (let [problem (var-get (resolve (symbol problem-name)))]
     (assoc problem :label problem-name)))
 
-(defn -main
+ (defn -main
   "Runs a set of experiments with the number of repetitions and maximum
    answers (tries) specified on the command line.
 
@@ -59,17 +60,26 @@
    (ns simple-search.experiment)
    (print-experimental-results
    (run-experiment [;(with-meta
-                     ; (partial core/hill-climber core/mutate-answer core/score)
-                      ;{:label "hill_climber_cliff_score"})
-                    ;(with-meta
-                     ; (partial core/hill-climber core/mutate-answer core/penalized-score)
-                      ;{:label "hill_climber_penalized_score"})
-                    (with-meta (partial core/random-search core/penalized-score)
-                      {:label "random_search"})]
-                   (map get-labelled-problem
-                        ["knapPI_11_20_1000_4" "knapPI_13_20_1000_4" "knapPI_16_20_1000_4"
-                         "knapPI_11_200_1000_4" "knapPI_13_200_1000_4" "knapPI_16_200_1000_4"])
-                   (Integer/parseInt num-repetitions)
-                   (Integer/parseInt max-answers)))
-  (shutdown-agents))
+        ;(partial core/uniform-crossover core/penalized-score core/normal-crossover 50)
+        ;{:label "uniform_crossover"})
+      ;(with-meta
+        ;(partial core/uniform-crossover-tweak core/penalized-score core/normal-crossover core/mutate-choices 50)
+        ;{:label "uniform_crossover_tweak"})
+      ;(with-meta
+        ;(partial core/uniform-crossover core/penalized-score core/two-point-crossover 50)
+        ;{:label "two_point_uniform_crossover"})
+      (with-meta
+        (partial core/uniform-crossover-tweak core/penalized-score core/two-point-crossover core/mutate-choices 50)
+        {:label "two_point_uniform_crossover_tweak"})
+      (with-meta
+        (partial core/random-search core/penalized-score)
+        {:label "basic_mutation"})]
+      (map get-labelled-problem [
+        "knapPI_11_20_1000_4" "knapPI_13_20_1000_4" "knapPI_16_20_1000_4"
+        "knapPI_11_200_1000_4" "knapPI_13_200_1000_4" "knapPI_16_200_1000_4" "knapPI_16_1000_1000_4"])
+      (Integer/parseInt num-repetitions)
+      (Integer/parseInt max-answers)))
+    (shutdown-agents))
+
+ (-main "1" "100")
 
